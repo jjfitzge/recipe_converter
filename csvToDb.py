@@ -12,7 +12,7 @@ sqlFoodDensTable = """ CREATE TABLE IF NOT EXISTS foodDensity (
                                     ); """
 cur = conn.cursor()
 cur.execute(sqlFoodDensTable)
-conn.close()
+#conn.close()
 # Get our values from CSV and insert them into the table
 def insert_row(connection, row):
     query = ''' INSERT INTO foodDensity(food,density) VALUES(?,?) '''
@@ -22,17 +22,32 @@ def insert_row(connection, row):
 
 with open('Copy of density_DB_v2_0_final-1__1_.csv', 'r') as csv_file:
     reader = csv.reader(csv_file)
+    #skip header
+    next(reader, None)
     for row in reader:
         food = row[0]
         density: float = 0.0
         if row[1] != "":
-            density = float(row[1])
+            try:
+                density = float(row[1])
+            except ValueError:
+                densityList = row[1].split("-")
+                avg = float(densityList[1]) - float(densityList[0])
+                density = float(densityList[0]) + avg
+
+
         elif row[2] != "":
-            density = float(row[2])
+            try:
+                density = float(row[2])
+            except ValueError:
+                densityList = row[2].split("-")
+                avg = float(densityList[1]) - float(densityList[0])
+                density = float(densityList[0]) + avg
         else:
             #if both density and gravity are blank we don't want to add current food to our table
             continue
         sqlRow = (food, density)
+        print(sqlRow)
         insert_row(conn, sqlRow)
 
 
